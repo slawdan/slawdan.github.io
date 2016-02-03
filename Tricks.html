@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  使用 hybla 拥塞控制模块为TCP提速 - Slawdan's Pages
+  Tricks - Slawdan's Pages
   
   </title>
  <meta name="description" content="Slawdan's Pages">
@@ -101,167 +101,95 @@
             </div>
             <div class="large-9 medium-9 columns">
 
- <div class="markdown-body">
-<h1>使用 hybla 拥塞控制模块为TCP提速</h1>
-
-<p><em>目录</em></p>
-
-<ul>
-<li>
-<a href="#toc_0">参考文章</a>
-</li>
-<li>
-<a href="#toc_1">安装</a>
-<ul>
-<li>
-<a href="#toc_2">即时生效</a>
-<ul>
-<li>
-<a href="#toc_3">加载</a>
-</li>
-<li>
-<a href="#toc_4">查看是否正常</a>
-</li>
-<li>
-<a href="#toc_5">修改sysctl.conf</a>
-</li>
-<li>
-<a href="#toc_6">使生效</a>
-</li>
-</ul>
-</li>
-<li>
-<a href="#toc_7">CentOS 开机自动加载</a>
-<ul>
-<li>
-<a href="#toc_8">写入</a>
-</li>
-<li>
-<a href="#toc_9">添加权限</a>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<a href="#toc_10">结果</a>
-<ul>
-<li>
-<a href="#toc_11">追加思考</a>
-</li>
-</ul>
-</li>
-</ul>
+ 
 
 
-<p>众所周知TCP在丢包率高的时候，带宽急剧下降。而VPS通常都在海外，所以VPS的访问速度通常都不咋的……但，通过修改TCP 拥塞控制算法模块即可大幅增加可用带宽，好神奇啊……</p>
+	
+		<div class="markdown-body">
+		<h1>检测服务器上哪些端口可用</h1>
 
-<p>这两天在网上看到了 serverspeeder，倒霉的是正好停止注册了……寻找替代时，发现了内核中已经内置的两个算法 hybla 和htcp，据说都可以有相同功效，于是搜索了一下文章，安装使用发现的确效果良好。目前VPS的下载速度已经稳定到400KBps了……</p>
+		<h2 id="toc_0">萧墙</h2>
 
-<h2 id="toc_0">参考文章</h2>
+<p>由于倒霉的运维防火墙策略，只有部分端口可用，然而不同IDC的端口可用范围还<strong>特么</strong> 不！一！样！所以写了两个bash函数来检查哪些端口可用……</p>
 
-<ul>
-<li><a href="http://www.g0n1x.com/%7Earchives/48.html">Linode编译hybla/htcp拥塞控制算法模块</a></li>
-<li><a href="https://www.ifshow.com/centos-7-shadowsocks-optimization/">CentOS 7 Shadowsocks优化</a></li>
-<li><a href="https://wordpress.youran.me/tcp_hybla/">载入tcp_hybla模块改善美国VPS访问</a></li>
-</ul>
+<h2 id="toc_1">红杏</h2>
 
-<h2 id="toc_1">安装</h2>
+<pre><code class="language-bash">check_avail_ports_server ()
+{
+ for ((i=$2 ; i &lt;= $3 ; i += $4)) ; do
+  bash -c &quot;timeout 10 nc -l $i &gt;&gt; $1 &amp; &quot;;
+ done ;
+}
 
-<p>由于我的vps内核是2.6.32，已经内置了tcp_hybla，所以直接参考第三篇文章安装了，未重新编译内核。</p>
-
-<h3 id="toc_2">即时生效</h3>
-
-<h4 id="toc_3">加载</h4>
-
-<pre><code class="language-bash">/sbin/modprobe tcp_hybla
+check_avail_ports_client ()
+{
+ for ((i=$2 ; i &lt;= $3 ; i += $4)) ; do
+  bash -c &quot;echo $i | nc $1 $i -G 1 &amp;&quot; ;
+ done;
+}
 </code></pre>
 
-<h4 id="toc_4">查看是否正常</h4>
+<h2 id="toc_2">姿势</h2>
 
-<pre><code class="language-bash">lsmod |grep hybla
+<p>把以上代码加入到bash里或者直接在bash中输入之。</p>
+
+<h3 id="toc_3">被测端</h3>
+
+<p>在要被检测的服务器端运行：</p>
+
+<pre><code class="language-bash">check_avail_ports_server avail_ports 1000 65535 10
 </code></pre>
 
-<p>或者</p>
+<p><strong>参数</strong></p>
 
-<pre><code class="language-bash">sysctl net.ipv4.tcp_available_congestion_control
+<ol>
+<li><code>output_file</code>: 将可用端口保存到文件，例如：<code>avail_ports</code></li>
+<li><code>start_port</code>: 起始端口号，例如：<code>1000</code></li>
+<li><code>end_port</code>: 结束端口号 ，例如：<code>65535</code></li>
+<li><code>port_interval</code>: 端口号间隔，每隔 <code>port_step</code> 个端口做检查，例如：<code>10</code></li>
+</ol>
+
+<h3 id="toc_4">检测端</h3>
+
+<p>在发起检测的客户端运行：</p>
+
+<pre><code class="language-bash">check_avail_ports_client 10.123.12.1 1000 65535 10
 </code></pre>
 
-<h4 id="toc_5">修改sysctl.conf</h4>
+<p><strong>参数</strong></p>
 
-<pre><code class="language-bash">net.ipv4.tcp_congestion_control=hybla
-</code></pre>
+<ol>
+<li><code>remote_ip</code>: ，例如：<code>10.123.12.1</code></li>
+<li><code>start_port</code>: 起始端口号，例如：<code>1000</code></li>
+<li><code>end_port</code>: 结束端口号 ，例如：<code>65535</code></li>
+<li><code>port_interval</code>: 端口号间隔，每隔 <code>port_step</code> 个端口做检查，例如：<code>10</code></li>
+</ol>
 
-<h4 id="toc_6">使生效</h4>
+<h3 id="toc_5">步骤</h3>
 
-<pre><code class="language-bash">sysctl -p
-</code></pre>
+<ol>
+<li>被测端先启动</li>
+<li>10 秒钟内启动检测端</li>
+<li>待检测端脚本执行完毕，去被测端查看 <code>output_file</code></li>
+</ol>
 
-<h3 id="toc_7">CentOS 开机自动加载</h3>
+<h3 id="toc_6">注意</h3>
 
-<h4 id="toc_8">写入</h4>
-
-<pre><code class="language-bash">cat &quot;#!/bin/sh\n/sbin/modprobe tcp_hybla&quot; &gt; /etc/sysconfig/modules/hybla.modules
-</code></pre>
-
-<h4 id="toc_9">添加权限</h4>
-
-<pre><code class="language-bash">chmod +x /etc/sysconfig/modules/hybla.modules
-</code></pre>
-
-<h2 id="toc_10">结果</h2>
-
-<p>由于是对TCP的优化，所以对ping不会有影响（utmp协议），但无论是http proxy还是ssh tunnel proxy，从之前的&lt;200KBps 提升到了400KBps，效果十分显著！！！</p>
-
-<h3 id="toc_11">追加思考</h3>
-
-<ul>
-<li>对移动网络是否优化良好？</li>
-<li>OpenVPN目前走的udp协议，估计不会有啥效果了……</li>
-</ul>
+<ol>
+<li>一定要在 10 秒钟内启动检测端，如果两端间 lag 比较高，可以修改脚本将 10 秒钟的 timeout 调大</li>
+<li><code>port_interval</code> 建议设置 <code>10</code> 以上，过小可能会导致进程数过多而使bash hang 掉</li>
+<li>两端的参数除了第1个以外，剩余3个均应完全相同</li>
+</ol>
 
 
-</div>
+		</div>
+	
 
-<br /><br />
-<hr />
+ 
+	
 
-<div class="row clearfix">
-  <div class="large-6 columns">
-	<div class="text-left" style="padding:15px 0px;">
-		
-	        <a href="14543727343017.html"  title="Previous Post: Mesos Installation on CentOS 6.4 (Linux 2.6.32-431)">&laquo; Mesos Installation on CentOS 6.4 (Linux 2.6.32-431)</a>
-	    
-	</div>
-  </div>
-  <div class="large-6 columns">
-	<div class="text-right" style="padding:15px 0px;">
-		
-	        <a href="14531743348380.html" 
-	        title="Next Post: Goodies - 好用又不贵的东西们">Goodies - 好用又不贵的东西们 &raquo;</a>
-	    
-	</div>
-  </div>
-</div>
-
-<div class="row">
-<div style="padding:0px 0.93em;" class="share-comments">
-<!-- UY BEGIN -->
-<div id="uyan_frame"></div>
-<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2081852"></script>
-<!-- UY END -->
-</div>
-</div>
-<script type="text/javascript">
-	$(function(){
-		var currentURL = '14539659734081.html';
-		$('#side-nav a').each(function(){
-			if($(this).attr('href') == currentURL){
-				$(this).parent().addClass('active');
-			}
-		});
-	});
-</script>  
+  
+  
 </div></div>
 
 
