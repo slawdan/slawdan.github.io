@@ -55,11 +55,23 @@
         <li><label>Linux</label></li>
 
           
+            <li><a title="Mesos 配置笔记" href="14545770604411.html">Mesos 配置笔记</a></li>
+          
             <li><a title="检测服务器上哪些端口可用" href="14544598709035.html">检测服务器上哪些端口可用</a></li>
           
             <li><a title="Mesos Installation on CentOS 6.4 (Linux 2.6.32-431)" href="14543727343017.html">Mesos Installation on CentOS 6.4 (Linux 2.6.32-431)</a></li>
           
             <li><a title="使用 hybla 拥塞控制模块为TCP提速" href="14539659734081.html">使用 hybla 拥塞控制模块为TCP提速</a></li>
+          
+
+      
+        <li class="divider"></li>
+        <li><label>Code</label></li>
+
+          
+            <li><a title="Google Foobar" href="14569656614034.html">Google Foobar</a></li>
+          
+            <li><a title="Jison" href="14551705729340.html">Jison</a></li>
           
 
       
@@ -86,11 +98,21 @@
                     
                       <li class="side-title"><span>Linux</span></li>
                         
+                          <li><a title="Mesos 配置笔记" href="14545770604411.html">Mesos 配置笔记</a></li>
+                        
                           <li><a title="检测服务器上哪些端口可用" href="14544598709035.html">检测服务器上哪些端口可用</a></li>
                         
                           <li><a title="Mesos Installation on CentOS 6.4 (Linux 2.6.32-431)" href="14543727343017.html">Mesos Installation on CentOS 6.4 (Linux 2.6.32-431)</a></li>
                         
                           <li><a title="使用 hybla 拥塞控制模块为TCP提速" href="14539659734081.html">使用 hybla 拥塞控制模块为TCP提速</a></li>
+                        
+
+                    
+                      <li class="side-title"><span>Code</span></li>
+                        
+                          <li><a title="Google Foobar" href="14569656614034.html">Google Foobar</a></li>
+                        
+                          <li><a title="Jison" href="14551705729340.html">Jison</a></li>
                         
 
                     
@@ -106,83 +128,27 @@
 
 	
 		<div class="markdown-body">
-		<h1>检测服务器上哪些端口可用</h1>
+		<h1>Mesos 配置笔记</h1>
 
-		<h2 id="toc_0">萧墙</h2>
-
-<p>由于倒霉的运维防火墙策略，只有部分端口可用，然而不同IDC的端口可用范围还<strong>特么</strong> 不！一！样！所以写了两个bash函数来检查哪些端口可用……</p>
-
-<h2 id="toc_1">红杏</h2>
-
-<pre><code class="language-bash">check_avail_ports_server ()
-{
- for ((i=$2 ; i &lt;= $3 ; i += $4)) ; do
-  bash -c &quot;timeout 10 nc -l $i &gt;&gt; $1 &amp; &quot;;
- done ;
-}
-
-check_avail_ports_client ()
-{
- for ((i=$2 ; i &lt;= $3 ; i += $4)) ; do
-  bash -c &quot;echo $i | nc $1 $i -G 1 &amp;&quot; ;
- done;
-}
-</code></pre>
-
-<h2 id="toc_2">姿势</h2>
-
-<p>把以上代码加入到bash里或者直接在bash中输入之。</p>
-
-<h3 id="toc_3">被测端</h3>
-
-<p>在要被检测的服务器端运行：</p>
-
-<pre><code class="language-bash">check_avail_ports_server avail_ports 1000 65535 10
-</code></pre>
-
-<p><strong>参数</strong></p>
+		<blockquote>
+<p>CentOS 6.4 上通过 yum 安装的 Mesos</p>
+</blockquote>
 
 <ol>
-<li><code>output_file</code>: 将可用端口保存到文件，例如：<code>avail_ports</code></li>
-<li><code>start_port</code>: 起始端口号，例如：<code>1000</code></li>
-<li><code>end_port</code>: 结束端口号 ，例如：<code>65535</code></li>
-<li><code>port_interval</code>: 端口号间隔，每隔 <code>port_step</code> 个端口做检查，例如：<code>10</code></li>
-</ol>
+<li><code>/etc/default/mesos-*</code> 的配置与 <code>/etc/mesos-*/*</code> 重复的话，会造成启动失败。为了减少歧义，可以放弃 <code>/etc/default/mesos-*</code> 中的配置，全都配置到 <code>/etc/mesos-*/*</code> 中</li>
+<li>mesos 配置里关于 zk 可以直接配置为 <code>$(cat /etc/mesos/zk)</code>， 如果 zk 已经写在 <code>/etc/mesos/zk</code> 里了</li>
+<li><p>Marathon 启动需要 <code>java-1.8.0</code>，yum 安装 <code>java-1.8.0-openjdk</code> 后，如果不是默认 jre, 可能需要修改 <code>/usr/bin/marathon</code> 启动脚本或者设置环境变量： <code>JAVA_HOME=/etc/alternatives/jre_1.8.0/</code> </p>
 
-<h3 id="toc_4">检测端</h3>
-
-<p>在发起检测的客户端运行：</p>
-
-<pre><code class="language-bash">check_avail_ports_client 10.123.12.1 1000 65535 10
-</code></pre>
-
-<p><strong>参数</strong></p>
-
-<ol>
-<li><code>remote_ip</code>: ，例如：<code>10.123.12.1</code></li>
-<li><code>start_port</code>: 起始端口号，例如：<code>1000</code></li>
-<li><code>end_port</code>: 结束端口号 ，例如：<code>65535</code></li>
-<li><code>port_interval</code>: 端口号间隔，每隔 <code>port_step</code> 个端口做检查，例如：<code>10</code></li>
-</ol>
-
-<h3 id="toc_5">步骤</h3>
-
-<ol>
-<li>被测端先启动</li>
-<li>10 秒钟内启动检测端</li>
-<li>待检测端脚本执行完毕，去被测端查看 <code>output_file</code></li>
-</ol>
-
-<h3 id="toc_6">注意</h3>
-
-<ol>
-<li>一定要在 10 秒钟内启动检测端，如果两端间 lag 比较高，可以修改脚本将 10 秒钟的 timeout 调大</li>
-<li><code>port_interval</code> 建议设置 <code>10</code> 以上，过小可能会导致进程数过多而使bash hang 掉</li>
-<li>两端的参数除了第1个以外，剩余3个均应完全相同</li>
+<blockquote>
+<p>如果未安装，除了启动不了，没有其他反馈</p>
+</blockquote></li>
 </ol>
 
 
 		</div>
+	
+
+ 
 	
 
  

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Slawdan's Pages
+  Mesos 配置笔记 - Slawdan's Pages
   
   </title>
  <meta name="description" content="Slawdan's Pages">
@@ -123,101 +123,65 @@
             </div>
             <div class="large-9 medium-9 columns">
 
- 
+ <div class="markdown-body">
+<h1>Mesos 配置笔记</h1>
 
-
-	
-		<div class="markdown-body">
-		<h1>Google Foobar</h1>
-
-		<p>上周三Google搜索Python时，意外收到了<a href="http://www.google.com/foobar/">Foobar</a>项目的推送：<img src="media/14569656614034/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202016-02-24%20%E4%B8%8A%E5%8D%8810.07.29.png" alt=""/><br/>
-然后自己还老土的以为发现新大陆了去微博上得瑟，被同事指出来……不过因为比较好玩，所以还是做了下去。</p>
-
-<h2 id="toc_0">好玩之处</h2>
-
-<p>我做的是 version 48(beta)，foobar题目一共分5个level，level 1共1道题，level 2共2道题，以此类推，据说level 5有5道题。</p>
-
-<p>根据目前搜索到的结果，绝大部分人都在达到level 5以后停下来了，因为level 5有一个题目较难最好多人协作的提示；另外据说 level 4通关以后，就会多出一个命令 <code>recruitme</code>，意即可以留下联系方式申请Google面试了……</p>
-
-<h3 id="toc_1">界面</h3>
-
-<p>Linux 命令行风格，有文件名自动补全，有个简单的help命令，有个内嵌编辑器，功能还算完成。用 Google Account 登录以后，可以保存进度。</p>
-
-<p><img src="media/14569656614034/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202016-02-24%20%E4%B8%8A%E5%8D%8810.08.17.png" alt="屏幕快照 2016-02-24 上午10.08.17"/></p>
-
-<h3 id="toc_2">题目类型</h3>
-
-<p>输入 <code>tags</code> 可以查看题目类型，在请求新题目时 <code>request algo</code> 可以指定问题类型。</p>
-
-<ul>
-<li>algo: algorithms</li>
-<li>data_struct: data structures</li>
-<li>low_level: low-level representation (binary representations, endianness)</li>
-<li>math: math</li>
-<li>crypto: security and cryptography</li>
-</ul>
-
-<h3 id="toc_3">整体故事性</h3>
-
-<p>题目的背景是一个结合了小黄人(minions)并且结合了兔子(rabbit)以及疯狂博士和僵尸(zombie)等等所有动画片卖萌元素的大！杂！烩！由于每个level的题目是随机抽取，题目之间并没有多大关联性。</p>
-
-<h3 id="toc_4">彩蛋</h3>
+<blockquote>
+<p>CentOS 6.4 上通过 yum 安装的 Mesos</p>
+</blockquote>
 
 <ol>
-<li>头几个level，submit的时候会有个ascii的兔子蹦来蹦去……</li>
-<li>输入错误的命令时，会（偶发）显示一句不知所谓的谚语……</li>
+<li><code>/etc/default/mesos-*</code> 的配置与 <code>/etc/mesos-*/*</code> 重复的话，会造成启动失败。为了减少歧义，可以放弃 <code>/etc/default/mesos-*</code> 中的配置，全都配置到 <code>/etc/mesos-*/*</code> 中</li>
+<li>mesos 配置里关于 zk 可以直接配置为 <code>$(cat /etc/mesos/zk)</code>， 如果 zk 已经写在 <code>/etc/mesos/zk</code> 里了</li>
+<li><p>Marathon 启动需要 <code>java-1.8.0</code>，yum 安装 <code>java-1.8.0-openjdk</code> 后，如果不是默认 jre, 可能需要修改 <code>/usr/bin/marathon</code> 启动脚本或者设置环境变量： <code>JAVA_HOME=/etc/alternatives/jre_1.8.0/</code> </p>
+
+<blockquote>
+<p>如果未安装，除了启动不了，没有其他反馈</p>
+</blockquote></li>
 </ol>
 
-<p><img src="media/14569656614034/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202016-02-24%20%E4%B8%8A%E5%8D%8811.23.53.png" alt="屏幕快照 2016-02-24 上午11.23.53"/></p>
 
-<h2 id="toc_5">我的进度</h2>
+</div>
 
-<p>我一共做了大概12道题目，成功提交了10道。大概做到第5、6题时，碰上bug，一直卡在了 level 3，于是就有了下面这个很滑稽的界面：</p>
+<br /><br />
+<hr />
 
-<p><img src="media/14569656614034/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202016-03-02%20%E4%B8%8B%E5%8D%8813.43.56.png" alt="屏幕快照 2016-03-02 下午13.43.56"/></p>
+<div class="row clearfix">
+  <div class="large-6 columns">
+	<div class="text-left" style="padding:15px 0px;">
+		
+	        <a href="14551705729340.html"  title="Previous Post: Jison">&laquo; Jison</a>
+	    
+	</div>
+  </div>
+  <div class="large-6 columns">
+	<div class="text-right" style="padding:15px 0px;">
+		
+	        <a href="14544598709035.html" 
+	        title="Next Post: 检测服务器上哪些端口可用">检测服务器上哪些端口可用 &raquo;</a>
+	    
+	</div>
+  </div>
+</div>
 
-<p>LOL……</p>
-
-<p>发了几次 feedback 没人理，算了也不追求 recruit me 了，当做自我算法能力的证明好了，但由于无法继续分享出来，回头还是去做 <a href="https://leetcode.com/">leetcode</a> 吧……</p>
-
-<p>我已做完的题目都已经提交到了 <a href="https://github.com/slawdan/foobar">github</a>，没注释，没有清晰的变量命名哦😄</p>
-
-<h3 id="toc_6">与别人的比对</h3>
-
-<p>后来跟网上能搜到的别人的解法做了对比，发现几个不同之处。</p>
-
-<p>优点是，我的算法运行效率不比科班ACMer差，这可能是由于工作年份久，对工程理解要更深一点吧……缺点是，有些解法虽然快但是很山寨，自己也无法解释为什么能够run……</p>
-
-<h2 id="toc_7">后记</h2>
-
-<p>写这篇blog的时候，打开foobar去找算法类型，结果手欠又request 了一道新题……</p>
-
-<p>Do or not do ……</p>
-
-
-		</div>
-	
-
- 
-	
-
- 
-	
-
- 
-	
-
- 
-	
-
- 
-	
-
- 
-	
-
-  
-  
+<div class="row">
+<div style="padding:0px 0.93em;" class="share-comments">
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2081852"></script>
+<!-- UY END -->
+</div>
+</div>
+<script type="text/javascript">
+	$(function(){
+		var currentURL = '14545770604411.html';
+		$('#side-nav a').each(function(){
+			if($(this).attr('href') == currentURL){
+				$(this).parent().addClass('active');
+			}
+		});
+	});
+</script>  
 </div></div>
 
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Slawdan's Pages
+  Challenge - Slawdan's Pages
   
   </title>
  <meta name="description" content="Slawdan's Pages">
@@ -128,92 +128,195 @@
 
 	
 		<div class="markdown-body">
-		<h1>Google Foobar</h1>
+		<h1>Jison</h1>
 
-		<p>上周三Google搜索Python时，意外收到了<a href="http://www.google.com/foobar/">Foobar</a>项目的推送：<img src="media/14569656614034/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202016-02-24%20%E4%B8%8A%E5%8D%8810.07.29.png" alt=""/><br/>
-然后自己还老土的以为发现新大陆了去微博上得瑟，被同事指出来……不过因为比较好玩，所以还是做了下去。</p>
+		<p><a href="http://zaa.ch/jison/try/">Online demo &amp; try</a></p>
 
-<h2 id="toc_0">好玩之处</h2>
+<h3 id="toc_0">Grammar</h3>
 
-<p>我做的是 version 48(beta)，foobar题目一共分5个level，level 1共1道题，level 2共2道题，以此类推，据说level 5有5道题。</p>
+<pre><code class="language-bison">/* lexical grammar */
+%lex
+%%
 
-<p>根据目前搜索到的结果，绝大部分人都在达到level 5以后停下来了，因为level 5有一个题目较难最好多人协作的提示；另外据说 level 4通关以后，就会多出一个命令 <code>recruitme</code>，意即可以留下联系方式申请Google面试了……</p>
+[ \t]*\n[ \t]*   return &#39;END&#39;
+&quot;&gt;&quot;    return &#39;FROM_TO&#39;
+&quot;=&quot;    return &#39;DEFINE_BY&#39;
+[a-zA-Z0-9]+  return &#39;ENTITY&#39;
+&quot;&#39;&quot;    return &quot;&#39;&quot;
+&lt;&lt;EOF&gt;&gt;               return &#39;EOF&#39;
+\s                   /* skip whitespace */
+.                     return &#39;INVALID&#39;
 
-<h3 id="toc_1">界面</h3>
+/lex
 
-<p>Linux 命令行风格，有文件名自动补全，有个简单的help命令，有个内嵌编辑器，功能还算完成。用 Google Account 登录以后，可以保存进度。</p>
+/* operator associations and precedence */
+%left FROM_TO
+%left DEFINE_BY
 
-<p><img src="media/14569656614034/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202016-02-24%20%E4%B8%8A%E5%8D%8810.08.17.png" alt="屏幕快照 2016-02-24 上午10.08.17"/></p>
+%% /* language grammar */
 
-<h3 id="toc_2">题目类型</h3>
+exps
+    : expressions EOF
+       {return $expressions;}
+    ;
 
-<p>输入 <code>tags</code> 可以查看题目类型，在请求新题目时 <code>request algo</code> 可以指定问题类型。</p>
+expressions
+    : expressions END ed
+        {$$ = $expressions; $$.unshift($ed); }
+    | expressions END eft
+        {$$ = $expressions; $$.push($ed); }
+    | e
+        {$$ = [$e];}
+    ;
 
-<ul>
-<li>algo: algorithms</li>
-<li>data_struct: data structures</li>
-<li>low_level: low-level representation (binary representations, endianness)</li>
-<li>math: math</li>
-<li>crypto: security and cryptography</li>
-</ul>
+e
+    :ed
+      {ss=$1;}
+    |eft
+      {ss=$1;}
+    ;
 
-<h3 id="toc_3">整体故事性</h3>
+ed
+    : ENTITY DEFINE_BY text
+      {$$={}; $$[$1] = $text;}
+    ;
 
-<p>题目的背景是一个结合了小黄人(minions)并且结合了兔子(rabbit)以及疯狂博士和僵尸(zombie)等等所有动画片卖萌元素的大！杂！烩！由于每个level的题目是随机抽取，题目之间并没有多大关联性。</p>
+eft
+    : ENTITY FROM_TO text
+      {$$=[$1, $text];}
+    ;
 
-<h3 id="toc_4">彩蛋</h3>
+text
+    : &quot;&#39;&quot; ENTITY &quot;&#39;&quot;
+        { $$=$2;}
+    ;
+</code></pre>
+
+<h3 id="toc_1">Inputs</h3>
+
+<pre><code class="language-bison">asdf &gt; &#39;asdjfasxdfasf&#39;
+fs = &#39;asdff&#39;
+s = &#39;fasdf&#39;
+fff = &#39;asdf&#39;
+</code></pre>
+
+<h3 id="toc_2">Generates</h3>
+
+<pre><code class="language-json">[{&quot;fff&quot;:&quot;asdf&quot;},{&quot;s&quot;:&quot;fasdf&quot;},{&quot;fs&quot;:&quot;asdff&quot;},[&quot;asdf&quot;,&quot;asdjfasxdfasf&quot;]]
+</code></pre>
+
+<h4 id="toc_3">Notes</h4>
 
 <ol>
-<li>头几个level，submit的时候会有个ascii的兔子蹦来蹦去……</li>
-<li>输入错误的命令时，会（偶发）显示一句不知所谓的谚语……</li>
+<li>definations will be put before directions,</li>
+<li>humanize line break.</li>
 </ol>
 
-<p><img src="media/14569656614034/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202016-02-24%20%E4%B8%8A%E5%8D%8811.23.53.png" alt="屏幕快照 2016-02-24 上午11.23.53"/></p>
+<h4 id="toc_4">TODO</h4>
 
-<h2 id="toc_5">我的进度</h2>
+<ol>
+<li>definations should be combined into one dict,</li>
+<li>string escape should be support.</li>
+</ol>
 
-<p>我一共做了大概12道题目，成功提交了10道。大概做到第5、6题时，碰上bug，一直卡在了 level 3，于是就有了下面这个很滑稽的界面：</p>
+<h3 id="toc_5">New Jison</h3>
 
-<p><img src="media/14569656614034/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202016-03-02%20%E4%B8%8B%E5%8D%8813.43.56.png" alt="屏幕快照 2016-03-02 下午13.43.56"/></p>
+<pre><code class="language-bison">/* description: Parses end executes mathematical expressions. */
 
-<p>LOL……</p>
+/* lexical grammar */
+%lex
+%%
 
-<p>发了几次 feedback 没人理，算了也不追求 recruit me 了，当做自我算法能力的证明好了，但由于无法继续分享出来，回头还是去做 <a href="https://leetcode.com/">leetcode</a> 吧……</p>
+[ \t]*[\r\n]+[ \t]*   return &#39;END&#39;
+&quot;&gt;&quot;    return &#39;FROM_TO&#39;
+&quot;=&quot;    return &#39;DEFINE_BY&#39;
+[a-zA-Z0-9]+  return &#39;ENTITY&#39;
+&quot;&#39;&quot;    return &quot;&#39;&quot;
+&lt;&lt;EOF&gt;&gt;               return &#39;EOF&#39;
+\s                   /* skip whitespace */
+.                     return &#39;INVALID&#39;
 
-<p>我已做完的题目都已经提交到了 <a href="https://github.com/slawdan/foobar">github</a>，没注释，没有清晰的变量命名哦😄</p>
+/lex
 
-<h3 id="toc_6">与别人的比对</h3>
+%% /* language grammar */
 
-<p>后来跟网上能搜到的别人的解法做了对比，发现几个不同之处。</p>
+exps
+    : expressions EOF
+       {return $expressions;}
+    ;
 
-<p>优点是，我的算法运行效率不比科班ACMer差，这可能是由于工作年份久，对工程理解要更深一点吧……缺点是，有些解法虽然快但是很山寨，自己也无法解释为什么能够run……</p>
+expressions
+    : expressions END ed
+        %{
+        $$ = $expressions;
+        if($$[&#39;defs&#39;][$ed[0]]) {
+            yy.parser.error($ed[0] + &#39; redefined&#39;);
+        }
+        $$[&#39;defs&#39;][$ed[0]] = $ed[1];
+        %}
+    | expressions END eft
+        %{
+        $$ = $expressions; 
+        if(!$$[&#39;defs&#39;][$eft[0]]) {
+            yy.parser.error($eft[0] + &#39; undefined&#39;);
+        }
+        if(!$$[&#39;defs&#39;][$eft[1]]) {
+            yy.parser.error($eft[1] + &#39; undefined&#39;);
+        }
+        $$[&#39;links&#39;].push($eft);
+        %}
+    | ed
+        {$$ = {defs: {}, links:[]}; console.log($ed); $$[&#39;defs&#39;][$ed[0]]=$ed[1];}
+    ;
 
-<h2 id="toc_7">后记</h2>
+e
+    :ed
+      {ss=$1;}
+    |eft
+      {ss=$1;}
+    ;
 
-<p>写这篇blog的时候，打开foobar去找算法类型，结果手欠又request 了一道新题……</p>
+ed
+    : ENTITY DEFINE_BY text
+      {$$=[$1, $text];}
+    ;
 
-<p>Do or not do ……</p>
+eft
+    : ENTITY FROM_TO ENTITY
+      {$$=[$1, $3];}
+    ;
+
+text
+    : &quot;&#39;&quot; ENTITY &quot;&#39;&quot;
+        { $$=$2;}
+    ;
+</code></pre>
+
+<h4 id="toc_6">Inputs</h4>
+
+<pre><code class="language-js">asdf = &#39;asdjfasxdfasf&#39;
+asdf1 = &#39;fasdf&#39;
+fff = &#39;fasdf&#39;
+
+asdf &gt; asdf1
+fff &gt; asdf
+</code></pre>
+
+<h4 id="toc_7">Generates</h4>
+
+<pre><code class="language-json">{&quot;defs&quot;:{&quot;asdf&quot;:&quot;asdjfasxdfasf&quot;,&quot;asdf1&quot;:&quot;fasdf&quot;,&quot;fff&quot;:&quot;fasdf&quot;},&quot;links&quot;:[[&quot;asdf&quot;,&quot;asdf1&quot;],[&quot;fff&quot;,&quot;asdf&quot;]]}
+</code></pre>
+
+<h4 id="toc_8">Features</h4>
+
+<ol>
+<li>supports compiling time check for defs and link targets,</li>
+<li>supports multiple empty lines,</li>
+<li>supports combined defs and links.</li>
+</ol>
 
 
 		</div>
-	
-
- 
-	
-
- 
-	
-
- 
-	
-
- 
-	
-
- 
-	
-
- 
 	
 
   
